@@ -1,0 +1,10 @@
+target/
+dbt_packages/
+logs/
+.env
+*.pyc
+.DS_Store
+profiles.yml
+*.log
+
+dbt_internal_packages/

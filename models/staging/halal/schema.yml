@@ -1,0 +1,87 @@
+version: 2
+
+models:
+  - name: stg_transactions_raw
+    description: |
+      Halal certification transactions with JSON data flattened into structured columns.
+      
+      Key transformations:
+      - JSON validation
+      - Path extraction ($.merchant.id, $.transaction.amount.value, etc.)
+      - Type assignment (STRING, FLOAT64, BOOL, DATE)
+      - Default NULL for missing keys
+      - Schema drift control
+      
+      Invalid JSON records are routed to the DLQ table.
+    
+    columns:
+      - name: transaction_id
+        description: "Transaction identifier"
+        tests:
+          - not_null
+          - unique
+      
+      - name: is_valid_json
+        description: "Flag indicating if the JSON was valid"
+      
+      - name: merchant_id
+        description: "Extracted merchant ID from JSON"
+      
+      - name: merchant_name_resolved
+        description: "Merchant name (from JSON or fallback to table column)"
+        tests:
+          - not_null
+      
+      - name: merchant_category
+        description: "Merchant category extracted from JSON"
+      
+      - name: transaction_amount
+        description: "Transaction amount as FLOAT64"
+      
+      - name: currency_code
+        description: "Currency code"
+        tests:
+          - accepted_values:
+              arguments:
+                values: ['SAR', 'USD', 'EUR']
+      
+      - name: transaction_timestamp
+        description: "Transaction timestamp in KSA timezone"
+      
+      - name: payment_method
+        description: "Payment method (card, cash, etc.)"
+      
+      - name: is_halal_certified
+        description: "Whether merchant is halal certified"
+        tests:
+          - not_null
+      
+      - name: certificate_id
+        description: "Halal certificate ID"
+      
+      - name: certificate_expiry_date
+        description: "Certificate expiry date"
+  
+  - name: stg_transactions_dlq
+    description: |
+      Dead Letter Queue for transactions with invalid JSON.
+      These records require investigation and manual correction.
+    
+    columns:
+      - name: transaction_id
+        description: "Transaction identifier"
+        tests:
+          - not_null
+          - unique
+      
+      - name: error_type
+        description: "Type of JSON error"
+        tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: ['NULL_JSON', 'EMPTY_JSON', 'INVALID_JSON_FORMAT']
+      
+      - name: transaction_data
+        description: "Original JSON data that failed validation"
+

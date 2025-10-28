@@ -1,0 +1,11 @@
+service_code,canonical_service_name,service_category,description
+MDP-PREMIUM,Premium Mobile Data,DATA,High-speed mobile data plan with premium features
+VCE-BASIC,Basic Voice Bundle,VOICE,Standard voice calling package
+VCE-PREMIUM,Premium Voice,VOICE,Premium voice calling with international features
+SMS-UNLIMITED,Unlimited SMS,MESSAGING,Unlimited SMS messaging service
+RMG-INTL,International Roaming,ROAMING,International roaming service
+DATA-50GB,50GB Data Bundle,DATA,50GB high-speed data package
+VOICE,Voice Services,VOICE,General voice services category
+DATA,Data Services,DATA,General data services category
+MEDIA,Media & Entertainment,MEDIA,Streaming and entertainment services
+STORAGE,Cloud Storage,STORAGE,Cloud storage services

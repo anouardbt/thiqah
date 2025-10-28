@@ -1,0 +1,181 @@
+-- Example analytical queries demonstrating the value of the unified data platform
+
+-- ============================================================================
+-- USE CASE 1: Multi-Source User Unification
+-- ============================================================================
+
+-- Query 1: Count users by source system participation
+-- Shows how many users appear in 1, 2, or all 3 systems
+select
+    source_record_count,
+    count(*) as user_count,
+    round(count(*) * 100.0 / sum(count(*)) over (), 2) as percentage
+from {{ ref('dim_unified_users') }}
+group by source_record_count
+order by source_record_count;
+
+
+-- Query 2: Active users with services across multiple systems
+-- Demonstrates the unified view benefit
+select
+    u.user_id,
+    u.email,
+    u.phone_number,
+    u.source_systems,
+    count(distinct s.service_key) as total_services,
+    count(distinct s.service_category) as service_categories,
+    string_agg(distinct s.service_name_canonical, ', ') as services
+from {{ ref('dim_unified_users') }} u
+left join {{ ref('fct_user_services') }} s
+    on u.user_id = s.unified_user_id
+where u.is_active = true
+group by u.user_id, u.email, u.phone_number, u.source_systems
+having count(distinct s.service_key) > 0
+order by total_services desc;
+
+
+-- Query 3: Data quality - users with conflicting information
+-- Identifies records that needed survivorship rules
+select
+    user_id,
+    email,
+    phone_number,
+    source_systems,
+    source_record_count,
+    days_since_last_update
+from {{ ref('dim_unified_users') }}
+where source_record_count > 1
+order by source_record_count desc;
+
+
+-- ============================================================================
+-- USE CASE 2: Payment Gateway Analytics
+-- ============================================================================
+
+-- Query 4: Daily payment summary
+-- Shows schema enforcement working correctly with proper types
+select
+    payment_date_key,
+    currency_code,
+    count(*) as transaction_count,
+    sum(amount) as total_amount,
+    sum(vat) as total_vat,
+    sum(total_amount) as grand_total,
+    avg(vat_percentage) as avg_vat_percentage,
+    sum(is_paid) as paid_count,
+    sum(is_failed) as failed_count,
+    sum(is_pending) as pending_count
+from {{ ref('fct_bills') }}
+group by payment_date_key, currency_code
+order by payment_date_key desc;
+
+
+-- Query 5: Payment status distribution
+select
+    payment_status,
+    count(*) as bill_count,
+    sum(total_amount) as total_value,
+    avg(total_amount) as avg_bill_value,
+    min(total_amount) as min_bill_value,
+    max(total_amount) as max_bill_value
+from {{ ref('fct_bills') }}
+group by payment_status
+order by total_value desc;
+
+
+-- Query 6: Bills with specific reference numbers (STRING preservation test)
+-- Demonstrates that reference numbers are preserved as strings
+select
+    bill_id,
+    billing_system_reference_no,
+    customer_id,
+    payment_date,
+    total_amount,
+    payment_status
+from {{ ref('fct_bills') }}
+where billing_system_reference_no like 'REF-%'
+order by payment_date desc;
+
+
+-- ============================================================================
+-- USE CASE 3: Halal Certification Analytics
+-- ============================================================================
+
+-- Query 7: Halal certification summary by merchant
+-- Shows successful JSON flattening
+select
+    merchant_name,
+    merchant_category,
+    count(*) as transaction_count,
+    sum(transaction_amount) as total_revenue,
+    avg(transaction_amount) as avg_transaction_value,
+    max(is_halal_certified) as is_certified,
+    max(certificate_id) as certificate_id,
+    max(certificate_expiry_date) as cert_expiry,
+    max(is_certificate_valid) as cert_valid
+from {{ ref('fct_transactions') }}
+group by merchant_name, merchant_category
+order by total_revenue desc;
+
+
+-- Query 8: Transactions by payment method and certification status
+select
+    payment_method,
+    is_halal_certified,
+    count(*) as transaction_count,
+    sum(transaction_amount) as total_amount,
+    avg(transaction_amount) as avg_amount
+from {{ ref('fct_transactions') }}
+group by payment_method, is_halal_certified
+order by total_amount desc;
+
+
+-- Query 9: Certificate expiry monitoring
+-- Identifies merchants with expiring certificates
+select
+    merchant_name,
+    merchant_category,
+    certificate_id,
+    certificate_expiry_date,
+    is_certificate_valid,
+    days_until_certificate_expiry,
+    count(*) as recent_transactions,
+    sum(transaction_amount) as recent_revenue
+from {{ ref('fct_transactions') }}
+where is_halal_certified = true
+group by 
+    merchant_name,
+    merchant_category,
+    certificate_id,
+    certificate_expiry_date,
+    is_certificate_valid,
+    days_until_certificate_expiry
+order by days_until_certificate_expiry nulls last;
+
+
+-- Query 10: Hourly transaction patterns
+select
+    transaction_hour,
+    merchant_category,
+    count(*) as transaction_count,
+    sum(transaction_amount) as total_amount,
+    avg(transaction_amount) as avg_amount
+from {{ ref('fct_transactions') }}
+group by transaction_hour, merchant_category
+order by transaction_hour, merchant_category;
+
+
+-- ============================================================================
+-- DATA QUALITY: DLQ Monitoring
+-- ============================================================================
+
+-- Query 11: Invalid JSON records requiring investigation
+select
+    transaction_id,
+    merchant_name,
+    error_type,
+    error_message,
+    _detected_at
+from {{ ref('stg_transactions_dlq') }}
+order by _detected_at desc;
+

@@ -1,0 +1,63 @@
+version: 2
+
+models:
+  - name: stg_bills
+    description: |
+      Payment gateway bills with strict schema enforcement.
+
+      Key transformations:
+      - bill_id: INT64 (strict numeric)
+      - billing_system_reference_no: STRING (no auto-conversion)
+      - payment_date: DATETIME (KSA timezone, no TZ)
+      - amount/vat/total_amount: FLOAT64 (decimals preserved)
+
+      Invalid records are filtered out in this layer.
+
+    columns:
+      - name: bill_id
+        description: "Bill identifier - INT64 type enforced"
+        tests:
+          - not_null
+          - unique
+
+      - name: billing_system_reference_no
+        description: "Reference number - preserved as STRING to prevent numeric coercion"
+        tests:
+          - not_null
+
+      - name: payment_date
+        description: "Payment date in KSA timezone as DATETIME (no timezone)"
+        tests:
+          - not_null:
+              config:
+                severity: warn
+      - name: amount
+        description: "Bill amount as FLOAT64 with decimal precision"
+        tests:
+          - not_null
+
+      - name: vat
+        description: "VAT amount as FLOAT64 with decimal precision"
+        tests:
+          - not_null
+
+      - name: total_amount
+        description: "Total amount including VAT"
+        tests:
+          - not_null
+
+      - name: currency_code
+        description: "Currency code (e.g., SAR)"
+        tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: ['SAR', 'USD', 'EUR']
+      - name: payment_status
+        description: "Payment status"
+        tests:
+          - accepted_values:
+              arguments:
+                values: ['paid', 'pending', 'failed', 'cancelled']
+      - name: is_valid_record
+        description: "Data quality flag - all records in this view should be valid"

@@ -1,0 +1,69 @@
+version: 2
+
+models:
+  - name: fct_transactions
+    description: |
+      Halal certification transactions fact table.
+
+      Use Case 3 deliverable: JSON flattened into relational structure with:
+      - JSON validation
+      - Path extraction ($.merchant.id, $.transaction.amount.value, etc.)
+      - Type assignment (STRING, FLOAT64, BOOL, DATE)
+      - Default NULL for missing keys
+      - DLQ routing for invalid JSON
+
+      Ready for analytics and reporting.
+
+    columns:
+      - name: transaction_id
+        description: "Transaction identifier"
+        tests:
+          - not_null
+          - unique
+
+      - name: merchant_id
+        description: "Merchant identifier extracted from JSON"
+      - name: merchant_name
+        description: "Merchant name"
+        tests:
+          - not_null
+
+      - name: merchant_category
+        description: "Merchant category (Food & Beverage, Meat Products, etc.)"
+      - name: transaction_amount
+        description: "Transaction amount (FLOAT64)"
+        tests:
+          - not_null
+          - dbt_utils.expression_is_true:
+              arguments:
+                expression: "> 0"
+      - name: currency_code
+        description: "Currency code"
+        tests:
+          - not_null
+
+      - name: transaction_timestamp
+        description: "Transaction timestamp in KSA timezone"
+        tests:
+          - not_null:
+              config:
+                severity: warn
+      - name: payment_method
+        description: "Payment method (card, cash, etc.)"
+      - name: is_halal_certified
+        description: "Whether merchant is halal certified"
+        tests:
+          - not_null
+
+      - name: certificate_id
+        description: "Halal certificate ID"
+      - name: certificate_expiry_date
+        description: "Certificate expiry date"
+      - name: is_certificate_valid
+        description: "Whether certificate is currently valid (not expired)"
+      - name: transaction_date_key
+        description: "Transaction date for dimensional modeling"
+        tests:
+          - not_null:
+              config:
+                severity: warn

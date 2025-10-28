@@ -1,0 +1,284 @@
+Hi all,
+
+Thank you again for the previous session, it was very useful.
+I apologize for the delay in sharing the HLD and the descriptions of our current use cases. We now have specific scenarios that we would like to explore through a POC or a quick demo, focusing on similar challenges we discussed earlier.
+
+ 
+
+I suggest postponing our call this week to next week at the same time, provided the HLD and use cases are clear enough for you to proceed with building the POC.
+If anything is unclear, please reach out to @Najd A. AlKhalaf or @Fahad A. Alshohaiebfor further clarification, and we can reschedule the call accordingly.
+
+ 
+
+ 
+
+Thiqah 
+
+
+Operations Analytics & BI (OABI) Department 
+
+
+ 
+
+
+The As-Is situation 
+
+
+ 
+
+
+The Operations Analytics & BI (OABI) department at Thiqah currently employs an on-premises data analytics platform leveraging Microsoft SQL
+ Server, SSIS, and Power BI Report Server. This architecture presents notable challenges concerning scalability, performance, and data governance. Key constraints include a single-node Data Warehouse (DWH) serving as a bottleneck, inefficient daily full-load
+ ETL processes, and the absence of a standardized transformation layer, collectively hindering agility and fostering inconsistent business logic. 
+
+
+ 
+
+
+To mitigate these limitations and unlock future capabilities, Thiqah is embarking on an initiative to construct a modern, cloud-native data
+ platform on Google Cloud Platform (GCP). The objective is to establish a scalable, governed, self-service ecosystem capable of supporting both batch and real-time analytics, facilitating advanced AI/ML use cases, and providing a robust foundation for data-driven
+ decision-making across the organization. 
+
+
+ 
+
+
+This document summarizes the scope, deliverables, and requirements for a collaborative effort to realize this vision. 
+
+
+ 
+
+
+ 
+
+
+Organization 
+
+
+· 
+Two teams: Data Engineering and Data Analytics. 
+
+
+· 
+100 production dashboards; heavy ad-hoc analytics demand. 
+
+
+Data Landscape 
+
+
+· 
+Source databases feeding a central SQL Server DWH (single node) with 70 DBs. 
+
+
+· 
+Current data footprint: ~1 TB (estimate). 
+
+
+Integration & Processing 
+
+
+· 
+ETL tool: SSIS. 
+
+
+· 
+Load strategy: Daily full loads; no incremental loading in place. 
+
+
+· 
+Transformations: No centralized transformation layer; only a few SSIS packages include
+ in-flight transforms. 
+
+
+Serving & BI Layer 
+
+
+· 
+Power BI Report Server (on-premises) connected to the SQL Server DWH. 
+
+
+· 
+SSAS used for a subset of large models where PBIX size/performance is a concern. 
+
+
+· 
+DirectQuery is generally avoided because the single-node DWH cannot sustain concurrent,
+ high-latency queries without severe contention. 
+
+
+Key Constraints / Challenges 
+
+
+· 
+Single-node DWH becomes a bottleneck under concurrent BI workloads. 
+
+
+· 
+Full-load strategy increases load windows and resource pressure; no CDC/incremental means
+ unnecessary data movement. 
+
+
+· 
+Lack of a standardized transformation/semantic layer leads to inconsistent definitions and
+ duplicated logic. 
+
+
+· 
+High ad-hoc demand strains the platform and team capacity. 
+
+
+Current Stack (at a glance) 
+
+
+SQL Server sources
+→
+ SSIS (daily full loads) →
+ SQL Server DWH (1 node) →
+ Power BI Report Server (on-prem) 
+
+
+ 
+
+
+One-line Summary 
+
+
+Today: SQL
+→
+ SSIS →
+ SQL DWH →
+ BI, with daily full loads, limited transformations, and scaling/performance constraints on a single-node DWH. 
+
+
+  
+
+
+D6kdcDkt4w+eAAAAAElFTkSuQmCC 
+
+
+  
+
+ 
+
+ 
+
+ 
+
+Thiqah Use-Cases
+
+
+ 
+
+
+  
+
+ 
+
+1) DWH_BIAllProducts
+
+Multi-source user & services unification
+
+Goal
+
+Unify users & services from 17 data sources into one unified table for analytics.
+
+Current flow:
+
+EL only
+
+Multiple sources → raw extracts → append into a single landing table.
+
+Needs:
+
+Datatype drift per source (e.g., UserId as INT in A, STRING in B, GUID in C). 
+
+Inconsistent semantics (e.g., “active”, “enabled”, “status” variants).
+Conflicting enums/lookup values (“mobile” vs “MobileNumber” vs “msisdn”).
+Duplicate identities and partial records.
+Required transforms
+
+Type coercion: cast to canonical types (e.g., UserId → STRING(64); CreatedAt → DATETIME; IsActive → BOOL). 
+Field normalization: trim/normalize phone numbers, emails; standardize case & Unicode. 
+Semantic mapping: map source flags to a unified status (e.g., enabled|active|1|true → IsActive=true). 
+Survivorship rules: pick the “best” value across sources (freshest timestamp, preferred source priority list). 
+Dedup & identity resolution: group by stable keys (email/phone + provider) to generate a global UserKey. 
+Reference data alignment: resolve service codes to a canonical catalog.
+2) PaymentGateway
+
+Incremental bills load via GCS Parquet → BigQuery
+
+Goal
+
+Incrementally load SQL Server → GCS (Parquet) → BigQuery without type mismatches.
+
+Current flow
+
+SQL (incremental) → write Parquet files to GCS → LOAD DATA into BQ managed table.
+
+Needs:
+
+Parquet’s per-file inference (e.g., “123” → INT64, 1.0 → INT64, 2024-01-01T.. → TIMESTAMP) doesn’t match target BigQuery schema (e.g., STRING/FLOAT64/DATETIME). LOAD DATA is strict and won’t cast at load time → load failures.
+
+Required transforms
+
+Schema enforcement: honor a contract (provided by us) for each column’s BigQuery type. 
+Per-column casting with safety (e.g., SAFE_CAST or pre-cast in the transform engine). 
+Datetime normalization: convert all timestamps to DATETIME (no TZ) or TIMESTAMP per target spec. 
+Numeric normalization: ensure FLOAT64 stays float; don’t downcast to INT when the decimal is .0. 
+STRING preservation: never auto-convert digit-only strings (invoice numbers, reference IDs). 
+Null & sentinel handling: treat "", "null", "0000-00-00" as NULLs where appropriate. 
+Example target schema (excerpt)
+
+Column
+
+Target Type
+
+Rule
+
+BillId
+
+INT64
+
+strict numeric; reject if non-numeric
+
+BillingSystemReferenceNo
+
+STRING
+
+treat as a string (no numeric coercion)
+
+PaymentDate
+
+DATETIME
+
+convert from any source TZ to KSA local, then strip TZ
+
+Amount, VAT
+
+FLOAT64
+
+keep decimals; reject non-numeric text
+
+5) Halal DWH 
+
+JSON fields inside SQL (NVARCHAR) → relational columns
+
+Goal
+
+Extract key attributes buried inside NVARCHAR(JSON) columns and expose them as typed relational columns for analytics and downstream joins.
+
+Current flow
+
+SQL Server table with one or more NVARCHAR columns that contain embedded JSON blobs. No structured projection today.
+
+Needs:
+
+JSON is free-form, keys can be missing/renamed, nested structures vary by record.
+Downstream queries are slow and brittle (JSON_VALUE everywhere), hard to index, and error-prone on invalid JSON.
+Required transforms
+
+JSON validation: drop/route invalid JSON to DLQ with original text and error. 
+Path extraction: e.g., $.merchant.id, $.transaction.amount.value, $.transaction.currency. 
+Type assignment: merchant.id → STRING; amount.value → DECIMAL(18,4); eventTime → DATETIME (KSA). 
+Defaulting: missing key → NULL (not empty string). 
+Schema drift control: ignore unknown keys unless white-listed; optional key registry for evolution.

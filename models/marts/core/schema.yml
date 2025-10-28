@@ -1,0 +1,82 @@
+version: 2
+
+models:
+  - name: dim_unified_users
+    description: |
+      Unified user dimension across all source systems.
+      
+      Use Case 1 deliverable: Multi-source user unification with:
+      - Type coercion and normalization
+      - Semantic mapping
+      - Survivorship rules
+      - Identity resolution and deduplication
+    
+    columns:
+      - name: user_id
+        description: "Global user identifier"
+        tests:
+          - not_null
+          - unique
+      
+      - name: email
+        description: "Best email from survivorship rules"
+      
+      - name: phone_number
+        description: "Best phone number from survivorship rules"
+      
+      - name: is_active
+        description: "Active status from highest priority source"
+        tests:
+          - not_null
+      
+      - name: source_systems
+        description: "All source systems where this user appears"
+        tests:
+          - not_null
+      
+      - name: source_record_count
+        description: "Number of source records unified"
+        tests:
+          - not_null
+          - dbt_utils.expression_is_true:
+              arguments:
+                expression: ">= 1"
+  
+  - name: fct_user_services
+    description: |
+      Unified services fact table linking users to their services.
+      
+      Features:
+      - Multi-source service consolidation
+      - User linkage via unified user dimension
+      - Service catalog alignment (canonical names)
+      - Service status tracking
+    
+    columns:
+      - name: service_key
+        description: "Unique service identifier"
+        tests:
+          - not_null
+          - unique
+      
+      - name: unified_user_id
+        description: "Foreign key to dim_unified_users"
+        tests:
+          - relationships:
+              arguments:
+                to: ref('dim_unified_users')
+                field: user_id
+      
+      - name: service_name_canonical
+        description: "Canonical service name from catalog"
+        tests:
+          - not_null
+      
+      - name: service_category
+        description: "Service category"
+      
+      - name: is_currently_active
+        description: "Whether service is currently active (not expired)"
+        tests:
+          - not_null
+

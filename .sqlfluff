@@ -1,0 +1,22 @@
+[sqlfluff]
+templater = dbt
+dialect = bigquery
+exclude_rules = L034, L036
+max_line_length = 120
+
+[sqlfluff:templater:dbt]
+project_dir = ./
+profiles_dir = ~/.dbt
+profile = thiqah_analytics
+target = dev
+
+[sqlfluff:rules]
+tab_space_size = 4
+indent_unit = space
+
+[sqlfluff:rules:L010]
+capitalisation_policy = lower
+
+[sqlfluff:rules:L030]
+capitalisation_policy = lower
+

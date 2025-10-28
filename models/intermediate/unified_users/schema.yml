@@ -1,0 +1,60 @@
+version: 2
+
+models:
+  - name: int_all_users_combined
+    description: "Combined user data from all source systems with priority ranking"
+    columns:
+      - name: user_key
+        description: "Source-specific user key"
+      - name: source_priority_rank
+        description: "Priority rank for survivorship logic (higher = better)"
+      - name: freshness_rank
+        description: "Ranking by last_updated within email/phone group"
+  
+  - name: int_user_identity_clusters
+    description: "User records grouped by identity (email/phone matching)"
+    columns:
+      - name: global_user_id
+        description: "Global user identifier across all source systems"
+        tests:
+          - not_null
+      - name: user_key
+        description: "Source-specific user key"
+  
+  - name: int_user_survivorship
+    description: |
+      Deduplicated users with survivorship rules applied.
+      
+      Survivorship logic:
+      - Picks best value from highest priority source
+      - Falls back to most recent value if priority is tied
+      - Tracks all source systems for each unified user
+    
+    columns:
+      - name: global_user_id
+        description: "Unique identifier for unified user across all sources"
+        tests:
+          - not_null
+          - unique
+      
+      - name: email
+        description: "Best email value based on survivorship rules"
+      
+      - name: phone_number
+        description: "Best phone number based on survivorship rules"
+      
+      - name: is_active
+        description: "Active status from highest priority source"
+        tests:
+          - not_null
+      
+      - name: source_systems
+        description: "Comma-separated list of source systems for this user"
+        tests:
+          - not_null
+      
+      - name: source_record_count
+        description: "Number of source records unified into this user"
+        tests:
+          - not_null
+

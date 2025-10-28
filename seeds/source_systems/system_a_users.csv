@@ -1,0 +1,6 @@
+source_system,user_id,email,phone_number,status,created_at,last_updated
+system_a,1001,ahmed.ali@example.sa,966501234567,active,2024-01-15 10:30:00,2024-10-01 14:20:00
+system_a,1002,fatima.omar@example.sa,966502345678,enabled,2024-02-20 09:15:00,2024-09-15 11:30:00
+system_a,1003,mohammed.hassan@example.sa,966503456789,1,2024-03-10 16:45:00,2024-10-10 08:45:00
+system_a,1004,sara.abdullah@example.sa,966504567890,active,2024-04-05 13:20:00,2024-10-15 16:10:00
+system_a,1005,khaled.ibrahim@example.sa,966505678901,disabled,2024-05-12 11:00:00,2024-08-20 09:30:00

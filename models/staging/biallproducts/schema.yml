@@ -1,0 +1,77 @@
+version: 2
+
+models:
+  - name: stg_system_a_users
+    description: "Normalized user data from System A with type coercion and standardization"
+    columns:
+      - name: user_key
+        description: "Surrogate key for user identification across systems"
+        tests:
+          - not_null
+          - unique
+      - name: email
+        description: "Normalized email (lowercase, trimmed)"
+      - name: phone_number
+        description: "Normalized phone number (966XXXXXXXXX format)"
+      - name: is_active
+        description: "Standardized boolean active status"
+        tests:
+          - not_null
+  
+  - name: stg_system_b_users
+    description: "Normalized user data from System B with type coercion and standardization"
+    columns:
+      - name: user_key
+        description: "Surrogate key for user identification across systems"
+        tests:
+          - not_null
+          - unique
+      - name: email
+        description: "Normalized email (lowercase, trimmed)"
+      - name: is_active
+        description: "Standardized boolean active status"
+  
+  - name: stg_system_c_users
+    description: "Normalized user data from System C with type coercion and standardization"
+    columns:
+      - name: user_key
+        description: "Surrogate key for user identification across systems"
+        tests:
+          - not_null
+          - unique
+      - name: email
+        description: "Normalized email (lowercase, trimmed)"
+      - name: is_active
+        description: "Standardized boolean active status"
+  
+  - name: stg_system_d_services
+    description: "Normalized services data from System D"
+    columns:
+      - name: service_key
+        description: "Surrogate key for service identification"
+        tests:
+          - not_null
+          - unique
+      - name: service_code
+        description: "Service code for catalog alignment"
+  
+  - name: stg_system_e_services
+    description: "Normalized services data from System E"
+    columns:
+      - name: service_key
+        description: "Surrogate key for service identification"
+        tests:
+          - not_null
+          - unique
+      - name: service_code
+        description: "Service category for catalog alignment"
+  
+  - name: stg_reference_service_catalog
+    description: "Canonical service catalog for reference data alignment"
+    columns:
+      - name: service_code
+        description: "Standardized service code"
+        tests:
+          - not_null
+          - unique
+

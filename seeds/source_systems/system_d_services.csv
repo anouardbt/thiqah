@@ -1,0 +1,7 @@
+source_system,service_id,service_name,service_code,user_id,provider,status,start_date,end_date
+system_d,5001,Mobile Data Plan,MDP-PREMIUM,1001,provider_alpha,active,2024-01-20,2025-01-20
+system_d,5002,Voice Bundle,VCE-BASIC,1002,provider_alpha,active,2024-02-25,2024-11-25
+system_d,5003,SMS Package,SMS-UNLIMITED,1003,provider_beta,enabled,2024-03-15,2025-03-15
+system_d,5004,Roaming Service,RMG-INTL,1004,provider_alpha,active,2024-04-10,
+system_d,5005,Data Bundle,DATA-50GB,U2003,provider_gamma,1,2024-06-20,2025-06-20
+system_d,5006,Premium Voice,VCE-PREMIUM,1001,provider_alpha,active,2024-07-01,

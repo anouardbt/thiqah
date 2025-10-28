@@ -1,0 +1,6 @@
+source_system,svc_id,svc_description,category,user_reference,vendor,active_flag,activation_dt,expiry_dt
+system_e,S7001,International Calling,VOICE,ahmed.ali@example.sa,VendorX,Y,2024-01-25,2025-01-25
+system_e,S7002,4G/5G Data,DATA,fatima.omar@example.sa,VendorX,Y,2024-02-28,2025-02-28
+system_e,S7003,Video Streaming,MEDIA,Mohammed.Hassan@example.sa,VendorY,N,2024-03-20,2024-09-20
+system_e,S7004,Cloud Storage,STORAGE,sara.abdullah@example.sa,VendorX,Y,2024-04-15,
+system_e,S7005,Entertainment Bundle,MEDIA,Nora.Fahad@example.sa,VendorZ,Y,2024-06-25,2025-06-25

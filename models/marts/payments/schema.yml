@@ -1,0 +1,80 @@
+version: 2
+
+models:
+  - name: fct_bills
+    description: |
+      Payment gateway bills fact table.
+      
+      Use Case 2 deliverable: Schema-enforced billing data with:
+      - Strict type enforcement (INT64, FLOAT64, STRING preservation)
+      - DateTime normalization to KSA timezone
+      - Numeric precision preservation
+      - No auto-type conversion issues
+      
+      Ready for BI consumption without data type conflicts.
+    
+    columns:
+      - name: bill_id
+        description: "Bill identifier (INT64)"
+        tests:
+          - not_null
+          - unique
+      
+      - name: billing_system_reference_no
+        description: "Reference number (STRING, not auto-converted)"
+        tests:
+          - not_null
+      
+      - name: payment_date
+        description: "Payment date in KSA timezone (DATETIME)"
+        tests:
+          - not_null:
+              config:
+                severity: warn
+      
+      - name: amount
+        description: "Bill amount (FLOAT64, decimals preserved)"
+        tests:
+          - not_null
+          - dbt_utils.expression_is_true:
+              arguments:
+                expression: ">= 0"
+      
+      - name: vat
+        description: "VAT amount (FLOAT64)"
+        tests:
+          - not_null
+          - dbt_utils.expression_is_true:
+              arguments:
+                expression: ">= 0"
+      
+      - name: total_amount
+        description: "Total amount including VAT"
+        tests:
+          - not_null
+          - dbt_utils.expression_is_true:
+              arguments:
+                expression: ">= amount"
+      
+      - name: currency_code
+        description: "Currency code"
+        tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: ['SAR', 'USD', 'EUR']
+      
+      - name: payment_status
+        description: "Payment status"
+        tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: ['paid', 'pending', 'failed', 'cancelled']
+      
+      - name: vat_percentage
+        description: "Calculated VAT percentage"
+      
+      - name: is_paid
+        description: "Binary flag for paid bills"
+

@@ -1,0 +1,6 @@
+source_system,userid,email_address,mobile,is_active,registration_date,modified_date
+system_b,U2001,AHMED.ALI@EXAMPLE.SA,+966-50-123-4567,true,2024-01-15,2024-10-20
+system_b,U2002,fatima.omar@EXAMPLE.sa,0502345678,true,2024-02-20,2024-10-18
+system_b,U2003,Nora.Fahad@example.sa,966-50-6789012,false,2024-06-15,2024-09-10
+system_b,U2004,omar.saleh@example.sa,+966506789013,true,2024-07-01,2024-10-19
+system_b,U2005,layla.ahmad@example.sa,966507890124,true,2024-08-10,2024-10-21

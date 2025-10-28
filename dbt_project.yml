@@ -1,0 +1,90 @@
+name: 'thiqah_analytics'
+version: '1.0.0'
+config-version: 2
+
+# This setting configures which "profile" dbt uses for this project.
+profile: 'bq'
+
+# These configurations specify where dbt should look for different types of files.
+model-paths: ["models"]
+analysis-paths: ["analyses"]
+test-paths: ["tests"]
+seed-paths: ["seeds"]
+macro-paths: ["macros"]
+snapshot-paths: ["snapshots"]
+
+clean-targets:
+  - "target"
+  - "dbt_packages"
+
+# Configuring models
+models:
+  thiqah_analytics:
+    # Staging models - raw data cleaning and type casting
+    staging:
+      +materialized: view
+      +tags:
+        - "staging"
+
+    # Intermediate models - business logic transformations
+    intermediate:
+      +materialized: view
+      +tags:
+        - "intermediate"
+
+    # Mart models - final analytics-ready tables
+    marts:
+      +materialized: table
+      +tags:
+        - "marts"
+
+      # Core business entities
+      core:
+        +tags:
+          - "core"
+
+      # Payment domain
+      payments:
+        +tags:
+          - "payments"
+
+      # Halal certification domain
+      halal:
+        +tags:
+          - "halal"
+
+# Seed configurations
+seeds:
+  thiqah_analytics:
+    +tags:
+      - "seeds"
+
+    # Source system seeds
+    source_systems:
+      +tags:
+        - "source_data"
+
+# Global variables
+vars:
+  # Date/Time
+  timezone: 'Asia/Riyadh'
+
+  # Session configuration (configurable per use case)
+  session_timeout_minutes: 30
+
+  # Data quality
+  enable_data_quality_checks: true
+
+  # Survivorship priority (higher number = higher priority)
+  source_priority:
+    system_a: 10
+    system_b: 9
+    system_c: 8
+    system_d: 7
+    system_e: 6
+
+# Tests
+tests:
+  +store_failures: true
+flags:
+  require_generic_test_arguments_property: true

@@ -1,0 +1,158 @@
+version: 2
+
+seeds:
+  - name: system_a_users
+    description: "User data from System A - uses INT user_id, 'active'/'disabled' status"
+    columns:
+      - name: source_system
+        description: "Source system identifier"
+      - name: user_id
+        description: "User ID as integer"
+      - name: email
+        description: "User email address"
+      - name: phone_number
+        description: "Phone number without formatting"
+      - name: status
+        description: "User status: active, disabled, enabled, or 1"
+      - name: created_at
+        description: "Account creation timestamp"
+      - name: last_updated
+        description: "Last update timestamp"
+  
+  - name: system_b_users
+    description: "User data from System B - uses STRING user_id with 'U' prefix, boolean is_active"
+    columns:
+      - name: source_system
+        description: "Source system identifier"
+      - name: userid
+        description: "User ID as string with U prefix"
+      - name: email_address
+        description: "User email (mixed case)"
+      - name: mobile
+        description: "Mobile number with various formats"
+      - name: is_active
+        description: "Boolean active status"
+      - name: registration_date
+        description: "Registration date"
+      - name: modified_date
+        description: "Last modification date"
+  
+  - name: system_c_users
+    description: "User data from System C - uses GUID user_id, status codes ACT/INA"
+    columns:
+      - name: source_system
+        description: "Source system identifier"
+      - name: user_guid
+        description: "User GUID identifier"
+      - name: user_email
+        description: "User email address"
+      - name: msisdn
+        description: "Mobile number in MSISDN format"
+      - name: status_code
+        description: "Status code: ACT (active), INA (inactive)"
+      - name: created_timestamp
+        description: "Creation timestamp in ISO format"
+      - name: updated_timestamp
+        description: "Update timestamp in ISO format"
+  
+  - name: system_d_services
+    description: "Services data from System D - linked to users via user_id"
+    columns:
+      - name: source_system
+        description: "Source system identifier"
+      - name: service_id
+        description: "Service identifier"
+      - name: service_name
+        description: "Service name"
+      - name: service_code
+        description: "Service code for catalog lookup"
+      - name: user_id
+        description: "User identifier (mixed types)"
+      - name: provider
+        description: "Service provider"
+      - name: status
+        description: "Service status"
+      - name: start_date
+        description: "Service start date"
+      - name: end_date
+        description: "Service end date (null for ongoing)"
+  
+  - name: system_e_services
+    description: "Services data from System E - linked to users via email"
+    columns:
+      - name: source_system
+        description: "Source system identifier"
+      - name: svc_id
+        description: "Service ID with S prefix"
+      - name: svc_description
+        description: "Service description"
+      - name: category
+        description: "Service category code"
+      - name: user_reference
+        description: "User reference (email)"
+      - name: vendor
+        description: "Vendor name"
+      - name: active_flag
+        description: "Active flag: Y/N"
+      - name: activation_dt
+        description: "Activation date"
+      - name: expiry_dt
+        description: "Expiry date"
+  
+  - name: payment_gateway_bills
+    description: "Payment gateway bills data - requires strict schema enforcement"
+    columns:
+      - name: bill_id
+        description: "Bill ID - must remain INT64"
+        tests:
+          - not_null
+          - unique
+      - name: billing_system_reference_no
+        description: "Reference number - must remain STRING (not auto-converted to numeric)"
+      - name: customer_id
+        description: "Customer identifier"
+      - name: payment_date
+        description: "Payment date - must be converted to DATETIME (KSA timezone)"
+      - name: amount
+        description: "Bill amount - must remain FLOAT64"
+      - name: vat
+        description: "VAT amount - must remain FLOAT64"
+      - name: total_amount
+        description: "Total amount including VAT - must remain FLOAT64"
+      - name: currency
+        description: "Currency code"
+      - name: status
+        description: "Payment status"
+      - name: created_at
+        description: "Record creation timestamp"
+  
+  - name: halal_transactions_raw
+    description: "Halal certification transactions with embedded JSON"
+    columns:
+      - name: transaction_id
+        description: "Transaction identifier"
+        tests:
+          - not_null
+          - unique
+      - name: merchant_name
+        description: "Merchant name"
+      - name: transaction_data
+        description: "JSON blob containing transaction details, merchant info, and certification data"
+      - name: created_at
+        description: "Transaction creation timestamp"
+  
+  - name: reference_service_catalog
+    description: "Canonical service catalog for reference data alignment"
+    columns:
+      - name: service_code
+        description: "Standardized service code"
+        tests:
+          - not_null
+          - unique
+      - name: canonical_service_name
+        description: "Canonical service name"
+      - name: service_category
+        description: "Service category"
+      - name: description
+        description: "Service description"
+
