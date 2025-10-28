@@ -8,3 +8,6 @@ packages:
   - package: metaplane/dbt_expectations
     version: 0.10.1
 
+  - package: dbt_date/dbt_date
+    version: 0.16.1
+
