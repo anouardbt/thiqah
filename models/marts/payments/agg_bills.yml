@@ -13,7 +13,6 @@ models:
   - name: transaction_date_key
     description: The date of the transaction, used as a key for daily aggregation.
     data_tests:
-      - unique
       - not_null
   - name: total_transactions
     description: The total number of transactions conducted by the merchant on the
