@@ -1,0 +1,29 @@
+models:
+- name: agg_bills
+  description: This model aggregates daily transaction metrics for each merchant,
+    providing insights into transaction volume, average transaction value, and halal
+    certification status. It is designed to support daily metrics analysis and is
+    incrementally updated.
+  columns:
+  - name: merchant_id
+    description: A unique identifier for each merchant.
+    data_tests:
+      - unique
+      - not_null
+  - name: transaction_date_key
+    description: The date of the transaction, used as a key for daily aggregation.
+    data_tests:
+      - unique
+      - not_null
+  - name: total_transactions
+    description: The total number of transactions conducted by the merchant on the
+      given date.
+  - name: avg_transaction_value
+    description: The average value of transactions conducted by the merchant on the
+      given date.
+  - name: halal_transaction_ratio
+    description: The ratio of transactions that are halal certified to the total transactions
+      for the merchant on the given date.
+  - name: avg_days_until_certificate_expiry
+    description: The average number of days until the halal certificate expires for
+      transactions conducted by the merchant.
